@@ -1,5 +1,6 @@
 import { createStore } from 'vuex'
 import record from "@/store/record";
+import client from "@/store/client";
 
 export default createStore({
   state: {
@@ -9,6 +10,6 @@ export default createStore({
   actions: {
   },
   modules: {
-    record,
+    record,client
   }
 })

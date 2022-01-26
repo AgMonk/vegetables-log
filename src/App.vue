@@ -1,6 +1,6 @@
 <template>
-    <my-navigation/>
-  <router-view/>
+  <my-navigation />
+  <router-view />
 </template>
 
 <style>
@@ -27,7 +27,15 @@
 </style>
 <script>
 import MyNavigation from "@/components/my/my-navigation";
+import {mapMutations} from "vuex";
+
 export default {
-  components: {MyNavigation}
+  components: {MyNavigation},
+  methods: {
+    ...mapMutations('client', [`init`])
+  },
+  mounted() {
+    this.init();
+  }
 }
 </script>
