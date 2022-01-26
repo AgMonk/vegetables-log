@@ -1,7 +1,9 @@
 <template>
   <el-container direction="vertical">
     <el-main style="--el-main-padding:3px">
-      <el-button type="success" @click="addRecord">添加</el-button>
+      <div style="text-align:left;margin-bottom: 5px">
+        <el-button type="success" @click="addRecord">添加</el-button>
+      </div>
 
       <el-form inline style="text-align: left">
         <el-form-item>
@@ -68,6 +70,7 @@
             :on-success="uploadSuccess"
             action="/api/images/upload"
             class="upload-demo"
+            :file-list="fileList"
             multiple
         >
           <el-button type="primary">上传</el-button>
@@ -175,6 +178,7 @@ export default {
       total: 100,
       images: [],
       imagePath: [],
+      fileList:[],
       params: {
         page: 1,
         size: 10,
@@ -223,7 +227,12 @@ export default {
     },
     uploadSuccess(res, file, fileList) {
       ElMessage.success("上传成功")
+      console.log(file)
+      console.log(fileList)
       this.listImage(this.currentUuid)
+      setTimeout(()=>{
+        this.fileList = fileList.filter(i=>i.name!==file.name)
+      },2000)
     },
     async listImage(uuid) {
       this.images = await this.list(uuid)
