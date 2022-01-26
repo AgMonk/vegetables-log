@@ -2,6 +2,7 @@
   <el-container direction="vertical">
     <el-main style="--el-main-padding:3px">
       <el-button type="success" @click="addRecord">添加</el-button>
+
       <el-form inline style="text-align: left">
         <el-form-item>
           <el-select v-model="params.filter.position" placeholder="地块" @change="refresh" clearable style="width:150px">
@@ -19,6 +20,7 @@
           </el-select>
         </el-form-item>
       </el-form>
+
       <el-pagination
           :current-page.sync="params.page"
           :default-current-page="1"
@@ -51,8 +53,35 @@
         <el-table-column label="地块" prop="position" width="80px" v-if="!params.filter.position" />
         <el-table-column label="操作" prop="typeO" width="80px"  v-if="!params.filter.typeO" />
         <el-table-column label="蔬菜" prop="typeV" width="80px"  v-if="!params.filter.typeV" />
-        <el-table-column label="详情" prop="description" />
+        <el-table-column label="详情" prop="description">
+          <template #default="s">
+            <span @click="showDetail(s.row.uuid)">{{s.row.description?s.row.description:'暂无'}}</span>
+          </template>
+        </el-table-column>
       </el-table>
+
+      <el-dialog v-model="showDialogDetail" title="详情" :width="clientMode==='PC端'?'50%':'90%'">
+        <el-upload
+            class="upload-demo"
+            action="/api/images/upload"
+            :data="{recordUuid:currentUuid}"
+            multiple
+            :on-success="uploadSuccess"
+        >
+          <el-button type="primary">上传</el-button>
+        </el-upload>
+        <div>
+          <el-image
+              v-for="(item,i) in images"
+              style="width: 100px; height: 100px"
+              :src="imagePath[i]"
+              :preview-src-list="imagePath"
+              :initial-index="i"
+              hide-on-click-modal
+          />
+        </div>
+      </el-dialog>
+
       <el-dialog v-model="showDialog" :title="dialogTitle" :width="clientMode==='PC端'?'50%':'90%'">
         <el-form :model="record">
           <el-form-item label="操作时间">
@@ -133,8 +162,12 @@ export default {
       options: {},
       dialogTitle: "添加",
       showDialog: false,
+      showDialogDetail: false,
+      currentUuid:"",
       data: [],
       total: 100,
+      images:[],
+      imagePath:[],
       params: {
         page: 1,
         size: 10,
@@ -160,6 +193,7 @@ export default {
   },
   methods: {
     ...mapActions("record", [`add`, `page`, `del`, `getOptions`, `update`]),
+    ...mapActions('image',[`list`,`del`]),
     deleteRecord(uuid) {
       ElMessageBox.confirm("确认删除？", "确认删除这条记录？", {type: 'warning', 'button-size': 'small'}).then(() => {
         this.del(uuid).then(() => {
@@ -167,6 +201,19 @@ export default {
           this.refresh()
         })
       })
+    },
+    uploadSuccess(res,file,fileList){
+      ElMessage.success("上传成功")
+      this.listImage(this.currentUuid)
+    },
+    async listImage(uuid) {
+      this.images = await this.list(uuid)
+      this.imagePath = this.images.map(i=>'/images'+i.path);
+    },
+    showDetail(uuid){
+      this.currentUuid = uuid;
+      this.showDialogDetail = true;
+      this.listImage(uuid);
     },
     addRecord() {
       this.record = {}
