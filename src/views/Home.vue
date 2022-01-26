@@ -5,17 +5,17 @@
 
       <el-form inline style="text-align: left">
         <el-form-item>
-          <el-select v-model="params.filter.position" placeholder="地块" @change="refresh" clearable style="width:150px">
+          <el-select v-model="params.filter.position" clearable placeholder="地块" style="width:150px" @change="refresh">
             <el-option v-for="item in options.position" :label="item" :value="item" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-select v-model="params.filter.typeO" placeholder="操作" @change="refresh" clearable style="width:150px">
+          <el-select v-model="params.filter.typeO" clearable placeholder="操作" style="width:150px" @change="refresh">
             <el-option v-for="item in options.typeO" :label="item" :value="item" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-select v-model="params.filter.typeV" placeholder="蔬菜" @change="refresh" clearable style="width:150px">
+          <el-select v-model="params.filter.typeV" clearable placeholder="蔬菜" style="width:150px" @change="refresh">
             <el-option v-for="item in options.typeV" :label="item" :value="item" />
           </el-select>
         </el-form-item>
@@ -35,7 +35,7 @@
       <el-table :data="data">
         <el-table-column label="操作时间" width="100px">
           <template #default="s">
-            <el-tooltip >
+            <el-tooltip>
               <template #content>
                 记录时间：
                 <my-timestamp :time="s.row.timeR" />
@@ -43,42 +43,49 @@
                   <delete-filled />
                 </el-icon>
               </template>
-             <span> <my-timestamp :time="s.row.timeO" />
-               <el-icon class="delete-icon" color="red" @click="editRecord(s.row)">
-                 <edit />
-               </el-icon></span>
+              <span>
+                <my-timestamp :time="s.row.timeO" />
+                <el-icon class="delete-icon" color="red" @click="editRecord(s.row)">
+                  <edit />
+                </el-icon>
+              </span>
             </el-tooltip>
           </template>
         </el-table-column>
-        <el-table-column label="地块" prop="position" width="80px" v-if="!params.filter.position" />
-        <el-table-column label="操作" prop="typeO" width="80px"  v-if="!params.filter.typeO" />
-        <el-table-column label="蔬菜" prop="typeV" width="80px"  v-if="!params.filter.typeV" />
+        <el-table-column v-if="!params.filter.position" label="地块" prop="position" width="80px" />
+        <el-table-column v-if="!params.filter.typeO" label="操作" prop="typeO" width="80px" />
+        <el-table-column v-if="!params.filter.typeV" label="蔬菜" prop="typeV" width="80px" />
         <el-table-column label="详情" prop="description">
           <template #default="s">
-            <span @click="showDetail(s.row.uuid)">{{s.row.description?s.row.description:'暂无'}}</span>
+            <span @click="showDetail(s.row.uuid)">{{ s.row.description ? s.row.description : '暂无' }}</span>
           </template>
         </el-table-column>
       </el-table>
 
-      <el-dialog v-model="showDialogDetail" title="详情" :width="clientMode==='PC端'?'50%':'90%'">
+      <el-dialog v-model="showDialogDetail" :width="clientMode==='PC端'?'50%':'90%'" title="详情">
         <el-upload
-            class="upload-demo"
-            action="/api/images/upload"
             :data="{recordUuid:currentUuid}"
-            multiple
             :on-success="uploadSuccess"
+            action="/api/images/upload"
+            class="upload-demo"
+            multiple
         >
           <el-button type="primary">上传</el-button>
         </el-upload>
         <div>
-          <el-image
-              v-for="(item,i) in images"
-              style="width: 100px; height: 100px"
-              :src="imagePath[i]"
-              :preview-src-list="imagePath"
-              :initial-index="i"
-              hide-on-click-modal
-          />
+          <span v-for="(item,i) in images">
+            <el-image
+
+                :initial-index="i"
+                :preview-src-list="imagePath"
+                :src="imagePath[i]"
+                hide-on-click-modal
+                style="width: 100px; height: 100px"
+            />
+            <el-button type="danger" @click="deleteImage(item.uuid)"><el-icon color="white" >
+              <delete />
+            </el-icon></el-button>
+          </span>
         </div>
       </el-dialog>
 
@@ -147,15 +154,15 @@
 // @ is an alias to /src
 import {mapActions, mapState} from "vuex";
 import MyTimestamp from "@/components/my/my-timestamp";
-import {DeleteFilled, Edit} from "@element-plus/icons-vue";
+import {Delete, DeleteFilled, Edit} from "@element-plus/icons-vue";
 import {ElMessage, ElMessageBox} from "element-plus";
 import {copyObj} from "@/assets/js/utils/ObjectUtils";
 
 export default {
   name: 'Home',
-  components: {MyTimestamp, DeleteFilled, Edit},
+  components: {MyTimestamp, DeleteFilled, Edit,Delete},
   computed: {
-    ...mapState('client',[`clientMode`])
+    ...mapState('client', [`clientMode`])
   },
   data() {
     return {
@@ -163,11 +170,11 @@ export default {
       dialogTitle: "添加",
       showDialog: false,
       showDialogDetail: false,
-      currentUuid:"",
+      currentUuid: "",
       data: [],
       total: 100,
-      images:[],
-      imagePath:[],
+      images: [],
+      imagePath: [],
       params: {
         page: 1,
         size: 10,
@@ -193,7 +200,19 @@ export default {
   },
   methods: {
     ...mapActions("record", [`add`, `page`, `del`, `getOptions`, `update`]),
-    ...mapActions('image',[`list`,`del`]),
+    ...mapActions('image', {
+      list:'list',
+      delImage:'del',
+    }),
+    deleteImage(uuid) {
+      console.log(uuid)
+      ElMessageBox.confirm("确认删除？", "确认删除这张图片？", {type: 'warning', 'button-size': 'small'}).then(() => {
+        this.delImage(uuid).then(() => {
+          ElMessage.success("删除成功");
+          this.listImage(this.currentUuid)
+        })
+      })
+    },
     deleteRecord(uuid) {
       ElMessageBox.confirm("确认删除？", "确认删除这条记录？", {type: 'warning', 'button-size': 'small'}).then(() => {
         this.del(uuid).then(() => {
@@ -202,15 +221,15 @@ export default {
         })
       })
     },
-    uploadSuccess(res,file,fileList){
+    uploadSuccess(res, file, fileList) {
       ElMessage.success("上传成功")
       this.listImage(this.currentUuid)
     },
     async listImage(uuid) {
       this.images = await this.list(uuid)
-      this.imagePath = this.images.map(i=>'/images'+i.path);
+      this.imagePath = this.images.map(i => '/images' + i.path);
     },
-    showDetail(uuid){
+    showDetail(uuid) {
       this.currentUuid = uuid;
       this.showDialogDetail = true;
       this.listImage(uuid);
