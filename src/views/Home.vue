@@ -31,20 +31,21 @@
       />
 
       <el-table :data="data">
-        <el-table-column label="记录时间" width="100px">
-          <template #default="s">
-            <my-timestamp :time="s.row.timeR" />
-            <el-icon class="delete-icon" color="red" @click="deleteRecord(s.row.uuid)">
-              <delete-filled />
-            </el-icon>
-          </template>
-        </el-table-column>
         <el-table-column label="操作时间" width="100px">
           <template #default="s">
-            <my-timestamp :time="s.row.timeO" />
-            <el-icon class="delete-icon" color="red" @click="editRecord(s.row)">
-              <edit />
-            </el-icon>
+            <el-tooltip >
+              <template #content>
+                记录时间：
+                <my-timestamp :time="s.row.timeR" />
+                <el-icon class="delete-icon" color="red" @click="deleteRecord(s.row.uuid)">
+                  <delete-filled />
+                </el-icon>
+              </template>
+             <span> <my-timestamp :time="s.row.timeO" />
+               <el-icon class="delete-icon" color="red" @click="editRecord(s.row)">
+                 <edit />
+               </el-icon></span>
+            </el-tooltip>
           </template>
         </el-table-column>
         <el-table-column label="地块" prop="position" width="80px" v-if="!params.filter.position" />
