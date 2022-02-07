@@ -128,11 +128,12 @@
           </el-form-item>
           <el-form-item label="蔬菜" props="typeV">
             <el-select
-                v-model="record.typeV"
+                v-model="record.typeVs"
                 allow-create
                 clearable
                 default-first-option
                 filterable
+                multiple
             >
               <el-option v-for="item in options.typeV" v-if="options.typeV" :label="item" :value="item" />
             </el-select>
@@ -196,7 +197,7 @@ export default {
         timeR: undefined,
         timeO: undefined,
         position: undefined,
-        typeV: undefined,
+        typeVs: undefined,
         typeO: undefined,
         description: undefined,
       },
