@@ -71,7 +71,6 @@
             action="/api/images/upload"
             class="upload-demo"
             :file-list="fileList"
-            multiple
         >
           <el-button type="primary">上传</el-button>
         </el-upload>
@@ -85,9 +84,11 @@
                 hide-on-click-modal
                 style="width: 100px; height: 100px"
             />
-            <el-button type="danger" @click="deleteImage(item.uuid)"><el-icon color="white" >
-              <delete />
-            </el-icon></el-button>
+            <el-button type="danger" @click="deleteImage(item.uuid)">
+              <el-icon color="white">
+                <delete />
+              </el-icon>
+            </el-button>
           </span>
         </div>
       </el-dialog>
@@ -128,6 +129,7 @@
           </el-form-item>
           <el-form-item label="蔬菜" props="typeV">
             <el-select
+                v-if="dialogTitle === '添加'"
                 v-model="record.typeVs"
                 allow-create
                 clearable
@@ -137,6 +139,17 @@
             >
               <el-option v-for="item in options.typeV" v-if="options.typeV" :label="item" :value="item" />
             </el-select>
+            <el-select
+                v-else
+                v-model="record.typeV"
+                allow-create
+                clearable
+                default-first-option
+                filterable
+            >
+              <el-option v-for="item in options.typeV" v-if="options.typeV" :label="item" :value="item" />
+            </el-select>
+
             <span class="tips">必填</span>
           </el-form-item>
           <el-form-item label="详情">
@@ -164,7 +177,7 @@ import {copyObj} from "@/assets/js/utils/ObjectUtils";
 
 export default {
   name: 'Home',
-  components: {MyTimestamp, DeleteFilled, Edit,Delete},
+  components: {MyTimestamp, DeleteFilled, Edit, Delete},
   computed: {
     ...mapState('client', [`clientMode`])
   },
@@ -179,7 +192,7 @@ export default {
       total: 100,
       images: [],
       imagePath: [],
-      fileList:[],
+      fileList: [],
       params: {
         page: 1,
         size: 10,
@@ -198,6 +211,7 @@ export default {
         timeO: undefined,
         position: undefined,
         typeVs: undefined,
+        typeV: undefined,
         typeO: undefined,
         description: undefined,
       },
@@ -206,8 +220,8 @@ export default {
   methods: {
     ...mapActions("record", [`add`, `page`, `del`, `getOptions`, `update`]),
     ...mapActions('image', {
-      list:'list',
-      delImage:'del',
+      list: 'list',
+      delImage: 'del',
     }),
     deleteImage(uuid) {
       console.log(uuid)
@@ -231,9 +245,9 @@ export default {
       console.log(file)
       console.log(fileList)
       this.listImage(this.currentUuid)
-      setTimeout(()=>{
-        this.fileList = fileList.filter(i=>i.name!==file.name)
-      },2000)
+      setTimeout(() => {
+        this.fileList = fileList.filter(i => i.name !== file.name)
+      }, 2000)
     },
     async listImage(uuid) {
       this.images = await this.list(uuid)
@@ -267,7 +281,8 @@ export default {
       this.showDialog = false;
       this.record = {};
     },
-    async refresh() {
+    async refresh(e) {
+      this.params.page=e;
       this.options = await this.getOptions()
       const {current, total, records} = await this.page(this.params)
       this.params.page = current;
