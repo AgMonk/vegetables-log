@@ -282,7 +282,7 @@ export default {
       this.record = {};
     },
     async refresh(e) {
-      this.params.page=e;
+      this.params.page=e?e:this.params.page;
       this.options = await this.getOptions()
       const {current, total, records} = await this.page(this.params)
       this.params.page = current;
