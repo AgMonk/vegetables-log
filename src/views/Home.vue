@@ -22,32 +22,43 @@
           </el-select>
         </el-form-item>
       </el-form>
-
       <el-pagination
           :current-page.sync="params.page"
           :default-current-page="1"
           :page-size="params.size"
           :pager-count="5"
           :total="total"
-          layout="total,prev, pager, next,jumper"
+          layout="sizes, total,prev, pager, next,jumper"
+          :page-sizes="[10,20,30,50,100]"
           small
           @current-change="refresh"
+          @size-change="sizeChange"
       />
 
       <el-table :data="data">
+        <el-table-column label=""  v-if="clientMode==='PC端'" width="40px">
+          <template #default="s">
+            <el-icon class="delete-icon" color="red" @click="deleteRecord(s.row.uuid)">
+              <delete-filled />
+            </el-icon>
+            <el-icon class="delete-icon" color="red" @click="editRecord(s.row)" >
+              <edit />
+            </el-icon>
+          </template>
+        </el-table-column>
         <el-table-column label="操作时间" width="100px">
           <template #default="s">
             <el-tooltip>
               <template #content>
                 记录时间：
                 <my-timestamp :time="s.row.timeR" />
-                <el-icon class="delete-icon" color="red" @click="deleteRecord(s.row.uuid)">
+                <el-icon class="delete-icon" color="red" @click="deleteRecord(s.row.uuid)" v-if="clientMode!=='PC端'">
                   <delete-filled />
                 </el-icon>
               </template>
               <span>
                 <my-timestamp :time="s.row.timeO" />
-                <el-icon class="delete-icon" color="red" @click="editRecord(s.row)">
+                <el-icon class="delete-icon" color="red" @click="editRecord(s.row)" v-if="clientMode!=='PC端'">
                   <edit />
                 </el-icon>
               </span>
@@ -223,6 +234,10 @@ export default {
       list: 'list',
       delImage: 'del',
     }),
+    sizeChange(e){
+      this.params.size = e;
+      this.refresh()
+    },
     deleteImage(uuid) {
       console.log(uuid)
       ElMessageBox.confirm("确认删除？", "确认删除这张图片？", {type: 'warning', 'button-size': 'small'}).then(() => {
