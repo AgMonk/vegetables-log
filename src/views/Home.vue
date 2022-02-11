@@ -274,7 +274,9 @@ export default {
       this.listImage(uuid);
     },
     addRecord() {
-      this.record = {}
+      if (this.record.uuid){
+        this.record = {}
+      }
       this.dialogTitle = '添加'
       this.showDialog = true;
     },
@@ -286,6 +288,7 @@ export default {
     async submit() {
       if (this.dialogTitle === '添加') {
         const res = await this.add(this.record);
+        this.record = {}
         console.log(res)
       }
       if (this.dialogTitle === '修改') {
