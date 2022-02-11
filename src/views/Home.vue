@@ -7,17 +7,17 @@
 
       <el-form inline style="text-align: left">
         <el-form-item>
-          <el-select v-model="params.filter.position" clearable placeholder="地块" style="width:150px" @change="refresh">
+          <el-select v-model="params.filter.position" clearable placeholder="地块" style="width:150px" @change="refresh()">
             <el-option v-for="item in options.position" :label="item" :value="item" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-select v-model="params.filter.typeO" clearable placeholder="操作" style="width:150px" @change="refresh">
+          <el-select v-model="params.filter.typeO" clearable placeholder="操作" style="width:150px" @change="refresh()">
             <el-option v-for="item in options.typeO" :label="item" :value="item" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-select v-model="params.filter.typeV" clearable placeholder="蔬菜" style="width:150px" @change="refresh">
+          <el-select v-model="params.filter.typeV" clearable placeholder="蔬菜" style="width:150px" @change="refresh()">
             <el-option v-for="item in options.typeV" :label="item" :value="item" />
           </el-select>
         </el-form-item>
