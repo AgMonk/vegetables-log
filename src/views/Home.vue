@@ -7,17 +7,17 @@
 
       <el-form inline style="text-align: left">
         <el-form-item>
-          <el-select v-model="params.filter.position" clearable placeholder="地块" style="width:150px" @change="refresh()">
+          <el-select v-model="params.filter.position" clearable filterable placeholder="地块" style="width:150px" @change="refresh()">
             <el-option v-for="item in options.position" :label="item" :value="item" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-select v-model="params.filter.typeO" clearable placeholder="操作" style="width:150px" @change="refresh()">
+          <el-select v-model="params.filter.typeO" clearable filterable placeholder="操作" style="width:150px" @change="refresh()">
             <el-option v-for="item in options.typeO" :label="item" :value="item" />
           </el-select>
         </el-form-item>
         <el-form-item>
-          <el-select v-model="params.filter.typeV" clearable placeholder="蔬菜" style="width:150px" @change="refresh()">
+          <el-select v-model="params.filter.typeV" clearable filterable placeholder="蔬菜" style="width:150px" @change="refresh()">
             <el-option v-for="item in options.typeV" :label="item" :value="item" />
           </el-select>
         </el-form-item>
@@ -26,22 +26,22 @@
           :current-page.sync="params.page"
           :default-current-page="1"
           :page-size="params.size"
+          :page-sizes="[10,20,30,50,100]"
           :pager-count="5"
           :total="total"
           layout="sizes, total,prev, pager, next,jumper"
-          :page-sizes="[10,20,30,50,100]"
           small
           @current-change="refresh"
           @size-change="sizeChange"
       />
 
       <el-table :data="data">
-        <el-table-column label=""  v-if="clientMode==='PC端'" width="40px">
+        <el-table-column v-if="clientMode==='PC端'" label="" width="40px">
           <template #default="s">
             <el-icon class="delete-icon" color="red" @click="deleteRecord(s.row.uuid)">
               <delete-filled />
             </el-icon>
-            <el-icon class="delete-icon" color="red" @click="editRecord(s.row)" >
+            <el-icon class="delete-icon" color="red" @click="editRecord(s.row)">
               <edit />
             </el-icon>
           </template>
@@ -52,13 +52,13 @@
               <template #content>
                 记录时间：
                 <my-timestamp :time="s.row.timeR" />
-                <el-icon class="delete-icon" color="red" @click="deleteRecord(s.row.uuid)" v-if="clientMode!=='PC端'">
+                <el-icon v-if="clientMode!=='PC端'" class="delete-icon" color="red" @click="deleteRecord(s.row.uuid)">
                   <delete-filled />
                 </el-icon>
               </template>
               <span>
                 <my-timestamp :time="s.row.timeO" />
-                <el-icon class="delete-icon" color="red" @click="editRecord(s.row)" v-if="clientMode!=='PC端'">
+                <el-icon v-if="clientMode!=='PC端'" class="delete-icon" color="red" @click="editRecord(s.row)">
                   <edit />
                 </el-icon>
               </span>
@@ -68,6 +68,7 @@
         <el-table-column v-if="!params.filter.position" label="地块" prop="position" width="80px" />
         <el-table-column v-if="!params.filter.typeO" label="操作" prop="typeO" width="80px" />
         <el-table-column v-if="!params.filter.typeV" label="蔬菜" prop="typeV" width="80px" />
+        <el-table-column v-if="totalImages>0" label="图片" prop="images.length" width="80px" />
         <el-table-column label="详情" prop="description">
           <template #default="s">
             <span @click="showDetail(s.row.uuid)">{{ s.row.description ? s.row.description : '暂无' }}</span>
@@ -77,13 +78,18 @@
 
       <el-dialog v-model="showDialogDetail" :width="clientMode==='PC端'?'50%':'90%'" title="详情">
         <el-upload
+            drag
+            multiple
             :data="{recordUuid:currentUuid}"
+            :file-list="fileList"
             :on-success="uploadSuccess"
             action="/api/images/upload"
             class="upload-demo"
-            :file-list="fileList"
         >
-          <el-button type="primary">上传</el-button>
+<!--          <el-button type="primary">上传</el-button>-->
+          <div class="el-upload-dragger" >
+            拖拽文件到此 或 点击上传
+          </div>
         </el-upload>
         <div>
           <span v-for="(item,i) in images">
@@ -204,6 +210,7 @@ export default {
       images: [],
       imagePath: [],
       fileList: [],
+      totalImages: 0,
       params: {
         page: 1,
         size: 10,
@@ -234,7 +241,7 @@ export default {
       list: 'list',
       delImage: 'del',
     }),
-    sizeChange(e){
+    sizeChange(e) {
       this.params.size = e;
       this.refresh()
     },
@@ -274,7 +281,7 @@ export default {
       this.listImage(uuid);
     },
     addRecord() {
-      if (this.record.uuid){
+      if (this.record.uuid) {
         this.record = {}
       }
       this.dialogTitle = '添加'
@@ -300,12 +307,15 @@ export default {
       this.record = {};
     },
     async refresh(e) {
-      this.params.page=e?e:this.params.page;
+      this.params.page = e ? e : this.params.page;
       this.options = await this.getOptions()
       const {current, total, records} = await this.page(this.params)
       this.params.page = current;
       this.total = total
       this.data = records;
+
+      this.totalImages = 0;
+      records.forEach(i => this.totalImages += i.images.length)
 
       console.log(this.options)
       console.log(this.data)
